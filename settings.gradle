@@ -1,1 +1,5 @@
-rootProject.name = 'es'
+rootProject.name = 'spring_reacitve'
+
+include 'kuku-reacitve-basic'
+
+include 'kuku-reacitve-es'
