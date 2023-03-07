@@ -1,12 +1,10 @@
 package com.webflux.basic.basicReactive.rxJava.observer;
 
-import java.util.concurrent.Flow;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.functions.Consumer;
+import rx.Observable;
 
 public class ObservePattern {
 
@@ -18,7 +16,7 @@ public class ObservePattern {
         return Observable.<String>create(
             sub -> {
                 sub.onNext("Hello reactive");
-                sub.onComplete();
+                sub.onCompleted();
             }
         );
 
