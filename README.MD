@@ -2,4 +2,8 @@
 
 ### 참고
 
-- https://rxmarbles.com/#buffer
+- RXMarbles diagram
+  - https://rxmarbles.com/#buffer
+
+- CompletionStage VS CompletableFuture
+  - https://stackoverflow.com/questions/47571117/what-is-the-difference-between-completionstage-and-completablefuture
