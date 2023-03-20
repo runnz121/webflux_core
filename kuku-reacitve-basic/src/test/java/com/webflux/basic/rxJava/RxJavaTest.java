@@ -1,6 +1,8 @@
 package com.webflux.basic.rxJava;
 
+import ch.qos.logback.core.util.InterruptUtil;
 import ch.qos.logback.core.util.TimeUtil;
+import io.micrometer.core.instrument.util.TimeUtils;
 import io.reactivex.rxjava3.core.BackpressureOverflowStrategy;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -10,8 +12,11 @@ import java.net.InterfaceAddress;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+
+import lombok.extern.slf4j.Slf4j;
 import scala.Int;
 
+@Slf4j
 public class RxJavaTest {
 
 
@@ -106,4 +111,72 @@ public class RxJavaTest {
         Thread.sleep(2000L);
     }
 
+    /**
+     * 배압 전략
+     * DROP_OLEST
+     * - 버퍼가 가득 찬 시점에 버퍼내에서 가장 오래전에 버퍼로 들어온 데이터를 DROP한다
+     * - DROP된 빈 자리에 버퍼 밖에서 대기하던 데이터를 채우는 전략
+     */
+
+    @Test
+    void backPressureOLestStrategy() throws InterruptedException {
+        Flowable.interval(300L, TimeUnit.MILLISECONDS)
+            .doOnNext(data -> System.out.println("#interval doOneNext : " +  data))
+            .onBackpressureBuffer(
+                2,
+                () -> System.out.println("overFlow"),
+                BackpressureOverflowStrategy.DROP_OLDEST)
+            .doOnNext(data -> System.out.println("#DROP_OLDEST doOnNext : " + data))
+            .observeOn(Schedulers.computation(), false, 1)
+            .subscribe(
+                data -> {
+                    Thread.sleep(1000L);
+                    System.out.println("OnNext " + data);
+                },
+                error -> System.out.println("error")
+            );
+        Thread.sleep(2500L);
+    }
+
+    /**
+     * 배압 전략
+     * DROP
+     * - 버퍼에 데이터가 모두 채워져 있는 상태에서 이후에 생성된 데이터는 Drop하고, 버퍼가 비워지면 Drop 되지 않은 데이터부터 버퍼에 추가된다
+     */
+
+    @Test
+    void backPressureDropStrategy() throws InterruptedException {
+        Flowable.interval(300L, TimeUnit.MILLISECONDS)
+            .doOnNext(data -> log.info("#interval doOneNext : {}", data))
+            .onBackpressureDrop(dropData -> log.info(dropData + " : Data"))
+            .observeOn(Schedulers.computation(), false, 1)
+            .subscribe(
+                data -> {
+                    Thread.sleep(1000L);
+                    log.info("onNext : {}", data);
+                },
+                error -> log.info("error")
+            );
+    }
+
+    /**
+     * 배압 전략
+     * LATEST
+     * - 버퍼에 데이터가 채워진 상태면 버퍼가 비워질 때까지 통지 데이터는 대기하고, 버퍼가 비워질 때 최근에 통지 된 데이터부터 버퍼에 추가된다
+     */
+
+    @Test
+    void backPressureLatestStrategy() {
+        Flowable.interval(300L, TimeUnit.MICROSECONDS)
+            .doOnNext(data -> System.out.println("#interval doOneNext : "+ data))
+            .onBackpressureLatest()
+            .observeOn(Schedulers.computation(), false, 1)
+            .subscribe(
+                data -> {
+                    TimeUnit.MICROSECONDS.sleep(1000L);
+                    System.out.println("onNext : " + data);
+                },
+                error -> System.out.println("error")
+            );
+    }
 }
